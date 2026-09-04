@@ -1,3 +1,4 @@
+import random
 from piece import pieces_F, pieces_G
 from board import print_board
 from score import calculate_x_lines, calculate_y_lines, calculate_z_lines, calculate_score
@@ -26,16 +27,12 @@ class Game:
     def __init__(self):
         self.phase = 1
         self.current_player = "F"
+        self.score_F = 0
+        self.score_G = 0
+        self.game_over = False
 
-        self.phase_end_used = {
-            "F": False,
-            "G": False
-        }
-
-        self.hand = {
-            "F": pieces_F.copy(),
-            "G": pieces_G.copy()
-        }
+        self.phase_end_used = {"F": False, "G": False}
+        self.hand = { "F": pieces_F.copy(),"G": pieces_G.copy()}
 
         self.board = [
     [
@@ -71,7 +68,7 @@ class Game:
         if self.board[z][y][x] is not None:
             return False
 
-        # 現在のプレイヤーの駒か
+        # その駒を持っているか
         if piece not in self.hand[self.current_player]:
             return False
 
@@ -94,36 +91,43 @@ class Game:
     def print_board(self):
         print_board(self.board)
 
-    def calculate_score(self):
-        print(f"フェーズ {self.phase} の得点計算")
-
     def end_phase_by_player(self):
         player = self.current_player
-        if self.phase_end_used[player]:
+        if self.game_over or self.phase_end_used[player]:
             return False
 
-        self.end_phase()
         self.phase_end_used[player] = True
-        print(f"{player} がフェーズ {self.phase} を終了しました")
-
+        self.end_phase()
+        self.change_turn()
         return True
 
     def end_phase(self):
-
-        self.calculate_score()
+        x = calculate_x_lines(self.board, self.phase)
+        y = calculate_y_lines(self.board, self.phase)
+        z = calculate_z_lines(self.board, self.phase)
+        score_F, score_G = calculate_score(x, y, z)
+        self.score_F += score_F
+        self.score_G += score_G
 
         if self.phase < 3:
             self.phase += 1
-
-            # 次のフェーズでは再び1回終了できる
-            self.phase_end_used["F"] = False
-            self.phase_end_used["G"] = False
-
-            print(f"フェーズ {self.phase} 開始")
-
         else:
-            print(f"フェーズ {self.phase} 終了")
+            self.phase = 4
+            self.game_over = True
             print("ゲーム終了")
+
+    def can_end_phase(self):
+        return not self.phase_end_used[self.current_player]
+
+    def is_phase_full(self):
+        z = self.phase - 1
+
+        for y in range(3):
+            for x in range(3):
+                if self.board[z][y][x] is None:
+                    return False
+
+        return True
 
     def get_legal_moves(self):
         moves = []
@@ -147,87 +151,79 @@ class Game:
 
         return moves
 
-    
+    def random_move(self):
+        moves = self.get_legal_moves()
 
-game = Game()
+        if not moves:
+            return False
 
-moves = game.get_legal_moves()
+        move = random.choice(moves)
 
-print(len(moves))
-print(moves[2])
+        x, y, piece, direction1, direction2 = move
 
-x, y, piece, direction1, direction2 = moves[0]
+        self.put_piece(
+            x, y, piece, direction1, direction2
+        )
 
-result = game.put_piece(
-    x, y, piece, direction1, direction2
-)
+        return True
 
-print(result)
+    def random_action(self):
+        if self.game_over or self.phase > 3:
+            return "game_end"
 
+        player = self.current_player
 
+        # 段が埋まっていた場合
+        if self.is_phase_full():
+            if self.phase == 3:
+                self.end_phase()
+                return "game_end"
+            
+            if self.can_end_phase(): 
+                self.end_phase_by_player()  
+                return "end"
+            else:
+                self.change_turn()
+                return "pass"
 
+        moves = self.get_legal_moves()
 
-# ####デバッグ
+        # 駒を持ってない?場合も
+        if not moves:
+            self.change_turn()
+            return "pass"
 
-# game = Game()
+        # 終了権を持っている場合
+        if self.can_end_phase():
 
+            empty_count = 0
+            z = self.phase - 1
 
-# ##phase1
-# game.put_piece(0, 0, pieces_F[0], "X", "Y")
-# game.put_piece(1, 0, pieces_G[0], "Z", "Y")
-# game.put_piece(2, 0, pieces_F[1], "X", "Z")
-# game.put_piece(0, 1, pieces_G[2], "X", "Y")
-# game.put_piece(1, 1, pieces_F[4], "Z", "Y")
+            for y in range(3):
+                for x in range(3):
+                    if self.board[z][y][x] is None:
+                        empty_count += 1
 
-# print("Gがフェーズ1を終了")
-# game.print_board()
-# x = calculate_x_lines(game.board, game.phase)
-# y = calculate_y_lines(game.board, game.phase)
-# z = calculate_z_lines(game.board, game.phase)
-# print('Phase1 X:', x)
-# print('Phase1 Y:', y)
-# print('Phase1 Z:', z)
-# score_F, score_G = calculate_score(x, y, z)
-# print(f"Phase1 得点 - F: {score_F}, G: {score_G}")
-# game.end_phase_by_player()
+            if random.random() < 1 / empty_count:
+                self.end_phase_by_player()
+                print(f"Player:{player}", "end phase")
+                return "end"
 
-# ##phase2
-# game.put_piece(0, 0, pieces_G[1], "X", "Y")
-# game.put_piece(1, 0, pieces_F[2], "Z", "Y")
-# game.put_piece(2, 0, pieces_G[3], "X", "Z")
-# game.put_piece(0, 1, pieces_F[5], "X", "Y")
-# game.put_piece(1, 1, pieces_G[4], "Z", "Y")
+        # 駒を置く
+        move = random.choice(moves)
 
-# print("Fがフェーズ2を終了")
-# game.print_board()
-# x = calculate_x_lines(game.board, game.phase)
-# y = calculate_y_lines(game.board, game.phase)
-# z = calculate_z_lines(game.board, game.phase)
-# print('Phase2 X:', x)
-# print('Phase2 Y:', y)
-# print('Phase2 Z:', z)
-# score_F, score_G = calculate_score(x, y, z)
-# print(f"Phase2 得点 - F: {score_F}, G: {score_G}")
-# game.end_phase_by_player()
+        x, y, piece, direction1, direction2 = move
 
-# ##phase3
-# game.put_piece(1, 0, pieces_G[5], "Z", "Y")
-# game.put_piece(2, 0, pieces_F[6], "X", "Z")
-# game.put_piece(0, 1, pieces_G[6], "X", "Y")
-# game.put_piece(1, 1, pieces_F[7], "Z", "Y")
-# game.put_piece(2, 1, pieces_G[7], "X", "Z")
-# game.put_piece(0, 2, pieces_F[8], "X", "Y")
-# game.put_piece(1, 2, pieces_G[8], "Z", "Y")
-# game.put_piece(2, 2, pieces_F[9], "X", "Z")
-# game.put_piece(0, 0, pieces_G[9], "X", "Y")
+        self.put_piece(
+            x, y, piece, direction1, direction2
+        )
 
-# print("フェーズ3を終了")
-# game.print_board()
-# x = calculate_x_lines(game.board, game.phase)
-# y = calculate_y_lines(game.board, game.phase)
-# z = calculate_z_lines(game.board, game.phase)
-# print('Phase3 X:', x)
-# print('Phase3 Y:', y)
-# print('Phase3 Z:', z)
-# score_F, score_G = calculate_score(x, y, z)
-# print(f"Phase3 得点 - F: {score_F}, G: {score_G}")
+        print(
+            f'Player:{player}',
+            'put',
+            f'({x}, {y})',
+            f'{piece.color1}{piece.color2}',
+            f'{direction1}{direction2}',
+            f'--{len(self.hand[self.current_player])}')
+
+        return "put"
