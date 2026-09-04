@@ -31,16 +31,25 @@ def print_board(board):
     CELL_WIDTH = 12
 
     print(
-        f"{'z=0':^{CELL_WIDTH * 3}}"
-        f"{'z=1':^{CELL_WIDTH * 3}}"
-        f"{'z=2':^{CELL_WIDTH * 3}}"
+        f"{'z=0':^{CELL_WIDTH * 3 + 4}}"
+        f"{'z=1':^{CELL_WIDTH * 3 + 4}}"
+        f"{'z=2':^{CELL_WIDTH * 3 + 4}}"
     )
+
+    # 上枠
+    border = ""
+    for z in range(3):
+        border += "+" + "-" * (CELL_WIDTH * 3) + "+"
+
+    print(border)
 
     for y in range(3):
 
         lines = ["", "", ""]
 
         for z in range(3):
+
+            piece_lines_all = [[], [], []]
 
             for x in range(3):
 
@@ -76,9 +85,14 @@ def print_board(board):
                     ]
 
                 for i in range(3):
-                    lines[i] += piece_lines[i]
+                    piece_lines_all[i].append(piece_lines[i])
+
+            # 盤面 z ごとの3セルを結合
+            for i in range(3):
+                lines[i] += "|" + "".join(piece_lines_all[i]) + "|"
 
         for line in lines:
             print(line)
 
-        print()
+        # 下枠
+        print(border)

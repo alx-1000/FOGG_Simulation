@@ -114,7 +114,6 @@ class Game:
         else:
             self.phase = 4
             self.game_over = True
-            print("ゲーム終了")
 
     def can_end_phase(self):
         return not self.phase_end_used[self.current_player]
