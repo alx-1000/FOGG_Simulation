@@ -36,7 +36,15 @@ def calculate_x_lines(board, phase):
 
             for x in range(3):
                 piece = board[z][y][x]
-                colors.append(get_color(piece, "X"))
+                if piece is not None and piece.down_direction is None:
+                    colors.append(get_color(piece, "X")) #その行にある駒の色を取得してリストに追加
+
+            #ぶら下げもカウント
+            if z + 1 < phase:
+                for x in range(3):
+                    piece = board[z + 1][y][x]
+                    if piece is not None and piece.down_direction == "X":
+                        colors.append(get_color(piece, "X"))
 
             result = calculate_colors(colors)
             results.append(result)
@@ -52,7 +60,15 @@ def calculate_y_lines(board, phase):
 
             for y in range(3):
                 piece = board[z][y][x]
-                colors.append(get_color(piece, "Y"))
+                if piece is not None and piece.down_direction is None:
+                    colors.append(get_color(piece, "Y"))
+
+            #ぶら下げもカウント
+            if z + 1 < phase:
+                for y in range(3):
+                    piece = board[z + 1][y][x]
+                    if piece is not None and piece.down_direction == "Y":
+                        colors.append(get_color(piece, "Y"))
 
             result = calculate_colors(colors)
             results.append(result)

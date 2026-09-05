@@ -1,5 +1,6 @@
 from game import Game
 from board import print_board
+from score import calculate_x_lines, calculate_y_lines, calculate_z_lines
 
 game = Game()
 
@@ -19,6 +20,9 @@ while not game.game_over and game.phase <= 3:
                 f"累積得点: F={game.score_F}, "
                 f"G={game.score_G}"
             )
+            print(calculate_x_lines(game.board, game.phase - 1))
+            print(calculate_y_lines(game.board, game.phase - 1))
+            print(calculate_z_lines(game.board, game.phase - 1))
             print()
             break
 

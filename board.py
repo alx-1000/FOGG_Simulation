@@ -77,6 +77,12 @@ def print_board(board):
                     x_char = directions["X"]
                     y_char = directions["Y"]
                     z_char = directions["Z"]
+                    
+                    if piece.down_direction == "X":
+                        x_char = f"[{x_char}]"
+
+                    elif piece.down_direction == "Y":
+                        y_char = f"[{y_char}]"
 
                     piece_lines = [
                         f"{y_char:^{CELL_WIDTH}}",

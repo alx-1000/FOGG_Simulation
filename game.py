@@ -74,7 +74,7 @@ class Game:
 
         return True
 
-    def put_piece(self, x, y, piece, direction1, direction2):
+    def put_piece(self, x, y, piece, direction1, direction2, down_direction=None):
         if not self.can_put_piece(x, y, piece):
             return False
         
@@ -82,11 +82,33 @@ class Game:
 
         piece.direction1 = direction1
         piece.direction2 = direction2
+        piece.down_direction = down_direction
 
         self.board[z][y][x] = piece
         self.hand[self.current_player].remove(piece)
         self.change_turn()
         return True
+
+    def can_hang_piece(self, x, y, piece, direction1, direction2):
+        if self.phase < 2:
+            return False
+        if not self.can_put_piece(x, y, piece):
+            return False
+
+        if x in (0, 2) and y in (0, 2): #角
+            return (
+                set((direction1, direction2)) == set(("X", "Z"))
+                or
+                set((direction1, direction2)) == set(("Y", "Z"))
+            )
+
+        if x in (0, 2):
+            return set((direction1, direction2)) == set(("X", "Z"))
+
+        if y in (0, 2):
+            return set((direction1, direction2)) == set(("Y", "Z"))
+
+        return False
 
     def print_board(self):
         print_board(self.board)
@@ -136,6 +158,7 @@ class Game:
             for x in range(3):
                 for piece in self.hand[self.current_player]:
 
+                    #通常配置
                     if self.can_put_piece(x, y, piece):
 
                         for direction1 in directions:
@@ -145,9 +168,22 @@ class Game:
                                     continue
 
                                 moves.append(
-                                    (x, y, piece, direction1, direction2)
+                                    (x, y, piece, direction1, direction2, None)
                                 )
+                    #ぶら下げ配置
+                    for direction1 in directions:
+                        for direction2 in directions:
 
+                            if direction1 == direction2:
+                                continue
+
+                            if self.can_hang_piece(x, y, piece, direction1, direction2):
+                                if "X" in (direction1, direction2):
+                                   moves.append(
+                                       (x, y, piece, direction1, direction2, "X"))
+                                if "Y" in (direction1, direction2):
+                                   moves.append(
+                                       (x, y, piece, direction1, direction2, "Y"))
         return moves
 
     def random_move(self):
@@ -158,10 +194,10 @@ class Game:
 
         move = random.choice(moves)
 
-        x, y, piece, direction1, direction2 = move
+        x, y, piece, direction1, direction2, down_direction = move
 
         self.put_piece(
-            x, y, piece, direction1, direction2
+            x, y, piece, direction1, direction2, down_direction
         )
 
         return True
@@ -211,10 +247,10 @@ class Game:
         # 駒を置く
         move = random.choice(moves)
 
-        x, y, piece, direction1, direction2 = move
+        x, y, piece, direction1, direction2, down_direction = move
 
         self.put_piece(
-            x, y, piece, direction1, direction2
+            x, y, piece, direction1, direction2, down_direction
         )
 
         print(
@@ -226,3 +262,36 @@ class Game:
             f'--{len(self.hand[self.current_player])}')
 
         return "put"
+
+
+##デバッグ
+# game = Game()
+# piece1 = game.hand["F"][0]
+# piece1.direction1 = "X"
+# piece1.direction2 = "Y"
+# piece2 = game.hand["F"][7]
+# piece2.direction1 = "Y"
+# piece2.direction2 = "Z"
+
+# game.board[0][0][0] = piece1
+# game.board[0][0][1] = piece2
+
+# # z=1, y=0, x=0 に X面Bのぶら下げ駒
+# piece3 = game.hand["F"][1]
+# piece3.direction1 = "Z"
+# piece3.direction2 = "X"
+# piece3.down_direction = "X"
+# piece4 = game.hand["G"][8]
+# piece4.direction1 = "Y"
+# piece4.direction2 = "Z"
+# piece4.down_direction = "Y"
+
+# game.board[1][0][0] = piece3
+# game.board[1][0][1] = piece4
+
+# x_lines = calculate_x_lines(game.board, 2)
+# y_lines = calculate_y_lines(game.board, 2)
+
+# print(x_lines)
+# print(y_lines)
+# print_board(game.board)

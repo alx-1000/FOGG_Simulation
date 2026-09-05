@@ -12,6 +12,7 @@ class Piece:
         self.color2 = color2
         self.direction1 = None
         self.direction2 = None
+        self.down_direction = None
 
 def make_pieces(owner, color1, color2, count):
     return [
