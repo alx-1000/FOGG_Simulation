@@ -33,6 +33,8 @@ class Game:
 
         self.phase_end_used = {"F": False, "G": False}
         self.hand = { "F": pieces_F.copy(),"G": pieces_G.copy()}
+        self.last_action = None
+        self.history = []
 
         self.board = [
     [
@@ -210,14 +212,30 @@ class Game:
 
         # 段が埋まっていた場合
         if self.is_phase_full():
+            #phase3ならゲーム終了
             if self.phase == 3:
                 self.end_phase()
+                self.history.append({
+                    "type": "game_end",
+                    "reason": "board_full",
+                    "player": player,
+                    "phase": self.phase,
+                    "score_F": self.score_F,
+                    "score_G": self.score_G
+                })
                 return "game_end"
-            
+
+            #終了権があるなら必ず使う
             if self.can_end_phase(): 
                 self.end_phase_by_player()  
                 return "end"
-            else:
+            #終了権がない場合はパス
+            if self.phase == 2:
+                self.end_phase()
+                self.history.append({
+                    "type": "pass",
+                    "player": player,
+                })
                 self.change_turn()
                 return "pass"
 
@@ -241,7 +259,16 @@ class Game:
 
             if random.random() < 1 / empty_count:
                 self.end_phase_by_player()
-                print(f"Player:{player}", "end phase")
+                self.history.append({
+                    "type": "end_phase",
+                    "player": player,
+                    "phase": self.phase,
+                    "score_F": self.score_F,
+                    "score_G": self.score_G,
+                    "F_hand": len(self.hand["F"]),
+                    "G_hand": len(self.hand["G"])
+                    
+                })
                 return "end"
 
         # 駒を置く
@@ -253,13 +280,31 @@ class Game:
             x, y, piece, direction1, direction2, down_direction
         )
 
-        print(
-            f'Player:{player}',
-            'put',
-            f'({x}, {y})',
-            f'{piece.color1}{piece.color2}',
-            f'{direction1}{direction2}',
-            f'--{len(self.hand[self.current_player])}')
+        self.history.append({
+            "type": "put",
+            "player": player,
+            "x": x,
+            "y": y,
+            "piece": piece,
+            "direction1": direction1,
+            "direction2": direction2,
+            "down_direction": down_direction
+        })
+
+        #こまがなくなったら強制終了
+        if self.phase == 3 and not self.hand["F"] and not self.hand["G"]:
+            self.end_phase()
+            self.history.append({
+                "type": "game_end",
+                "reason": "hands_empty",
+                "player": player,
+                "phase": self.phase,
+                "score_F": self.score_F,
+                "score_G": self.score_G,
+                "F_hand": len(self.hand["F"]),
+                "G_hand": len(self.hand["G"])
+            })
+            return "game_end"
 
         return "put"
 
