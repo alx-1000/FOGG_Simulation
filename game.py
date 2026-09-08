@@ -227,14 +227,27 @@ class Game:
 
             #終了権があるなら必ず使う
             if self.can_end_phase(): 
-                self.end_phase_by_player()  
+                self.end_phase_by_player()
+                self.history.append({
+                    "type": "end_phase",
+                    "player": player,
+                    "phase": self.phase,
+                    "score_F": self.score_F,
+                    "score_G": self.score_G,
+                    "F_hand": len(self.hand["F"]),
+                    "G_hand": len(self.hand["G"])
+                })
                 return "end"
             #終了権がない場合はパス
             if self.phase == 2:
-                self.end_phase()
                 self.history.append({
                     "type": "pass",
                     "player": player,
+                    "phase": self.phase,
+                    "score_F": self.score_F,
+                    "score_G": self.score_G,
+                    "F_hand": len(self.hand["F"]),
+                    "G_hand": len(self.hand["G"])
                 })
                 self.change_turn()
                 return "pass"
@@ -257,7 +270,7 @@ class Game:
                     if self.board[z][y][x] is None:
                         empty_count += 1
 
-            if random.random() < 1 / empty_count:
+            if empty_count < 8 and random.random() < 0.1: #1 / (empty_count + 1):
                 self.end_phase_by_player()
                 self.history.append({
                     "type": "end_phase",
@@ -309,34 +322,3 @@ class Game:
         return "put"
 
 
-##デバッグ
-# game = Game()
-# piece1 = game.hand["F"][0]
-# piece1.direction1 = "X"
-# piece1.direction2 = "Y"
-# piece2 = game.hand["F"][7]
-# piece2.direction1 = "Y"
-# piece2.direction2 = "Z"
-
-# game.board[0][0][0] = piece1
-# game.board[0][0][1] = piece2
-
-# # z=1, y=0, x=0 に X面Bのぶら下げ駒
-# piece3 = game.hand["F"][1]
-# piece3.direction1 = "Z"
-# piece3.direction2 = "X"
-# piece3.down_direction = "X"
-# piece4 = game.hand["G"][8]
-# piece4.direction1 = "Y"
-# piece4.direction2 = "Z"
-# piece4.down_direction = "Y"
-
-# game.board[1][0][0] = piece3
-# game.board[1][0][1] = piece4
-
-# x_lines = calculate_x_lines(game.board, 2)
-# y_lines = calculate_y_lines(game.board, 2)
-
-# print(x_lines)
-# print(y_lines)
-# print_board(game.board)

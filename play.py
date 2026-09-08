@@ -34,6 +34,7 @@ def play_random_game():
     return game
 
 
-game = play_random_game()
-# log_game(game)
+#game = play_random_game()
+#log_game(game)
 # print_board(game.board)
+
