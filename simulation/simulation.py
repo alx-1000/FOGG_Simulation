@@ -1,5 +1,5 @@
 import csv
-from play import play_random_game
+from src.play import play_random_game
 
 results = []
 

@@ -1,6 +1,6 @@
-from game import Game
-from board import print_board
-from log import log_game
+from src.game import Game
+from src.board import print_board
+from src.log import log_game
 
 
 def play_random_game(phase_end_rule="by_player"):

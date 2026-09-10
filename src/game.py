@@ -1,7 +1,7 @@
 import random
-from piece import pieces_F, pieces_G
-from board import print_board
-from score import calculate_x_lines, calculate_y_lines, calculate_z_lines, calculate_score
+from src.piece import pieces_F, pieces_G
+from src.board import print_board
+from src.score import calculate_x_lines, calculate_y_lines, calculate_z_lines, calculate_score
 
 #color
 R = "R"
