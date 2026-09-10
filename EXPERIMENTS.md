@@ -276,6 +276,8 @@ Phase 1の得点差を後半で覆すこと自体が難しいゲームなのか�
 
 # 11. Monte Carlo AI vs Random AI
 
+結論: 少ない探索回数でもRandomに対して非常に大きな優位を得られる  
+
 `by_player` ルールで、Monte Carlo AI と Random AI を比較した。
 
 実験設定：
