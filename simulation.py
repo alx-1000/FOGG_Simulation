@@ -1,123 +1,94 @@
 import csv
-
 from play import play_random_game
-
 
 results = []
 
-for game_id in range(1000):
+for phase_end_rule in ["by_player", "fixed"]:
 
-    game = play_random_game()
+    print(f"=== {phase_end_rule} ===")
 
-    # -------------------------
-    # Phase情報をhistoryから取得
-    # -------------------------
+    for game_id in range(1000):
 
-    phase1_turns = 0
-    phase2_turns = 0
+        game = play_random_game(phase_end_rule)
 
-    phase1 = None
-    phase2 = None
+        phase1_turns = 0
+        phase2_turns = 0
+        phase1 = None
+        phase2 = None
+        current_phase = 1
 
-    current_phase = 1
-
-    for event in game.history:
-
-        # 駒を置いた
-        if event["type"] == "put":
-
-            if current_phase == 1:
-                phase1_turns += 1
-
-            elif current_phase == 2:
-                phase2_turns += 1
-
-        # Phase終了
-        elif event["type"] == "end_phase":
-
-            if event["phase"] == 2:
-                # Phase 1終了
-                phase1 = event
-                current_phase = 2
-
-            elif event["phase"] == 3:
-                # Phase 2終了
-                phase2 = event
-                current_phase = 3
-
-
-    # -------------------------
-    # 念のためPhase情報を確認
-    # -------------------------
-
-    if phase1 is None or phase2 is None:
-        print("ERROR")
-        print("game_id:", game_id + 1)
-        print("phase1:", phase1)
-        print("phase2:", phase2)
-        print("history:")
         for event in game.history:
-            print(event)
-        break
 
+            if event["type"] == "put":
 
-    # -------------------------
-    # 勝者
-    # -------------------------
+                if current_phase == 1:
+                    phase1_turns += 1
 
-    if game.score_F > game.score_G:
-        winner = "F"
+                elif current_phase == 2:
+                    phase2_turns += 1
 
-    elif game.score_G > game.score_F:
-        winner = "G"
+            elif event["type"] == "end_phase":
 
-    else:
-        winner = "draw"
+                if event["phase"] == 2:
+                    phase1 = event
+                    current_phase = 2
 
+                elif event["phase"] == 3:
+                    phase2 = event
+                    current_phase = 3
 
-    # -------------------------
-    # CSV用データ
-    # -------------------------
+        # 異常チェック
+        if phase1 is None or phase2 is None:
+            print("ERROR")
+            print("rule:", phase_end_rule)
+            print("game_id:", game_id + 1)
+            print("phase1:", phase1)
+            print("phase2:", phase2)
 
-    results.append({
+            for event in game.history:
+                print(event)
 
-        "game_id": game_id + 1,
-
-        # Phase 1終了時
-        "score_F_phase1": phase1["score_F"],
-        "score_G_phase1": phase1["score_G"],
-
-        # Phase 2終了時
-        "score_F_phase2": phase2["score_F"],
-        "score_G_phase2": phase2["score_G"],
-
-        # 最終スコア
-        "score_F": game.score_F,
-        "score_G": game.score_G,
+            break
 
         # 勝者
-        "winner": winner,
+        if game.score_F > game.score_G:
+            winner = "F"
 
-        # Phase 1
-        "phase1_turns": phase1_turns,
-        "phase1_end_player": phase1["player"],
+        elif game.score_G > game.score_F:
+            winner = "G"
 
-        # Phase 2
-        "phase2_turns": phase2_turns,
-        "phase2_end_player": phase2["player"],
-    })
+        else:
+            winner = "draw"
+
+        results.append({
+            "rule": phase_end_rule,
+            "game_id": game_id + 1,
+
+            "score_F_phase1": phase1["score_F"],
+            "score_G_phase1": phase1["score_G"],
+
+            "score_F_phase2": phase2["score_F"],
+            "score_G_phase2": phase2["score_G"],
+
+            "score_F": game.score_F,
+            "score_G": game.score_G,
+
+            "winner": winner,
+
+            "phase1_turns": phase1_turns,
+            "phase1_end_player": phase1["player"],
+
+            "phase2_turns": phase2_turns,
+            "phase2_end_player": phase2["player"],
+        })
+
+        if (game_id + 1) % 100 == 0:
+            print(f"{game_id + 1} games finished")
 
 
-    if (game_id + 1) % 100 == 0:
-        print(f"{game_id + 1} games finished")
-
-
-# -------------------------
 # CSV保存
-# -------------------------
-
 with open(
-    "random_games.csv",
+    "random_games_compare.csv",
     "w",
     newline="",
     encoding="utf-8"
@@ -132,6 +103,5 @@ with open(
 
     writer.writeheader()
     writer.writerows(results)
-
 
 print("CSV saved.")

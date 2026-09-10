@@ -36,6 +36,9 @@ class Game:
         self.last_action = None
         self.history = []
 
+        #ルールのバリエーション
+        self.phase_end_rule = "by_player" # "by_player" or "fixed"
+
         self.board = [
     [
         [None, None, None],
@@ -270,7 +273,14 @@ class Game:
                     if self.board[z][y][x] is None:
                         empty_count += 1
 
-            if empty_count < 8 and random.random() < 0.1: #1 / (empty_count + 1):
+            #end_phase_ruleのバリエーション
+            should_end = False
+            if self.phase_end_rule == "fixed":
+                should_end = empty_count == 1
+            elif self.phase_end_rule == "by_player":
+                should_end = empty_count < 8 and random.random() < 0.1
+
+            if should_end:
                 self.end_phase_by_player()
                 self.history.append({
                     "type": "end_phase",
