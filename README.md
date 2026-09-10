@@ -484,3 +484,35 @@ Phase 1の得点差を後半で覆すこと自体が難しいゲームなのか�
 4. 選択肢の多さ
 
 を順に検証する。
+
+---
+
+# 11. Monte Carlo AI vs Random AI
+
+`by_player` ルールで、Monte Carlo AI と Random AI を比較した。
+
+実験設定：
+
+```text
+games: 30
+rollouts: 10
+candidate-limit: 24
+```
+
+`candidate-limit` は、各手番で評価する候補手の上限である。Phase終了は候補から除外しない。
+
+| 対戦 | Monte Carlo AIの成績 | 平均得点 | 平均得点差 |
+| --- | --- | ---: | ---: |
+| Monte Carlo (F) vs Random (G) | 30勝0敗0分 | F: 19.97 / G: 7.30 | F-G: +12.67 |
+| Random (F) vs Monte Carlo (G) | 30勝0敗0分 | F: 7.40 / G: 19.33 | F-G: -11.93 |
+| Random (F) vs Random (G) | F: 13勝 / G: 17勝 | F: 12.70 / G: 12.77 | F-G: -0.07 |
+
+Monte Carlo AIは先手・後手の両方で全30局に勝利した。一方、Random同士では平均得点差がほぼ0である。
+
+このため、この条件ではMonte Carlo AIの優位は先後によるものではなく、探索に基づく手の選択によるものと判断できる。
+
+G側のMonte Carlo AIは、Phase 1を終了した30局で平均0.80マスを残して終了した。F側のRandom AIはPhase 2を平均0.17マス残して終了している。Phase終了を早めに戦略として選ぶことが、AIの優位に関係している可能性がある。
+
+ただし、各手番で評価するのは全合法手ではなく、最大24候補である。候補内での推定勝率差は、全合法手に対する最善手の明確さとは区別して扱う必要がある。
+
+次は、ロールアウト数と候補上限を変えた比較、ならびにMCTSとの比較を行う。

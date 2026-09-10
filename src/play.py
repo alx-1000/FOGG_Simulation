@@ -35,7 +35,7 @@ def play_random_game(phase_end_rule="by_player"):
     return game
 
 
-game = play_random_game()
-log_game(game)
-print_board(game.board)
-
+if __name__ == "__main__":
+    game = play_random_game()
+    log_game(game)
+    print_board(game.board)
