@@ -3,7 +3,7 @@
 ## 1. Random Play
 
 1000 games of Random vs Random.  
-end phase ルールは by player.
+phase end ルールは by player.
 
 | Metric                         | Result |
 | ------------------------------ | -----: |
@@ -17,9 +17,7 @@ Phase 1–3の平均得点差はそれぞれ +0.269, +0.494, +0.669。
 
 **Observation:** Random PlayでもFの優位が見られ、先手有利の傾向がある。
 
----
-
-## 2. Phase Ending
+<br>
 
 Phase 1の終了者と最終勝敗を比較。
 
@@ -29,14 +27,20 @@ Phase 1の終了者と最終勝敗を比較。
 | G             | 58.5% | 33.1% | 8.5% |
 
 GはPhase1を終わらせると不利になる可能性がある.  
-また、Phase終了方法を比較すると：
+**Observation:** Phase終了のタイミングは先手・後手の有利不利に大きく影響する可能性がある。
+
+---
+
+## 2. Phase End Rule の比較
+
+phase end ルール の違いによる先手有利性の比較
 
 | Rule      | F win | G win | Draw | Avg. score diff. |
 | --------- | ----: | ----: | ---: | ---------------: |
 | by_player | 54.1% | 38.3% | 7.6% |           +0.886 |
 | fixed     | 46.9% | 44.0% | 9.1% |           +0.121 |
 
-**Observation:** Phase終了のタイミングは先手・後手の有利不利に大きく影響する可能性がある。
+fixed の方が先手有利ではなくなる.
 
 ---
 
