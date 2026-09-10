@@ -2,7 +2,8 @@
 
 ## 1. Random Play
 
-1000 games of Random vs Random.
+1000 games of Random vs Random.  
+end phase ルールは by player.
 
 | Metric                         | Result |
 | ------------------------------ | -----: |
@@ -27,6 +28,7 @@ Phase 1の終了者と最終勝敗を比較。
 | F             | 51.0% | 39.7% | 9.3% |
 | G             | 58.5% | 33.1% | 8.5% |
 
+GはPhase1を終わらせると不利になる可能性がある.  
 また、Phase終了方法を比較すると：
 
 | Rule      | F win | G win | Draw | Avg. score diff. |
