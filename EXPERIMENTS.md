@@ -88,3 +88,13 @@ Monte Carlo AI vs Random AI、30 games、10 rollouts、candidate limit 24。
 * Phase終了をAIの候補から除外して比較する
 * AIがどのようなPhase終了タイミングを選ぶか分析する
 * その後MCTSを導入する
+
+---
+
+## 6. Decision Analysis
+
+Monte Carlo AI (F) と Random AI (G) を10ゲーム対戦させ、通常MCは10 rollouts、局面分析は2 rollouts、評価候補は最大24手とした。Fが10勝0敗で、平均最終スコア差はF-Gで+12.4だった。
+
+231局面を分析した結果、Phase 1は合法手数が平均327.67、best-worst gapが0.925と最も大きかった。Phase 2ではそれぞれ280.70、0.220に減少し、Phase 3ではbest-second gapとbest-worst gapがともに0だった。全体では合法手数の平均266.94、best-second gapの平均0.029、best-worst gapの平均0.431だった。
+
+Phaseが進むほど合法手数と評価差が小さくなる傾向が見られたが、rollouts=2では勝率が0.0、0.5、1.0に量子化されるため、Phase 3のgapが0でも手の重要性がないとは断定できない。また、10ゲームかつRandom AIとの対戦のみのため、Fの一般的な優位性を示す結果でもない。ゲーム数とrollout数を増やし、今回の傾向が再現するか確認する必要がある。

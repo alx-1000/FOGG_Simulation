@@ -3,6 +3,7 @@ import unittest
 from ai.monte_carlo import MonteCarloAI
 from ai.random_ai import RandomAI
 from ai.runner import play_game
+from simulation.decision_analysis import DecisionAnalyzer
 from src.game import Action, Game
 
 
@@ -61,6 +62,48 @@ class GameActionTests(unittest.TestCase):
         )
         self.assertEqual(monte_carlo_decision["evaluated_candidates"], 2)
         self.assertNotEqual(monte_carlo_decision["selected_win_rate"], "")
+
+    def test_decision_analyzer_evaluates_all_legal_actions(self):
+        game = Game()
+        legal_actions = game.get_legal_actions()
+        selected_action = legal_actions[0]
+        analyzer = DecisionAnalyzer(rollouts_per_action=1, seed=3, candidate_limit=None)
+
+        result = analyzer.analyze(game, legal_actions, selected_action)
+
+        self.assertEqual(result["legal_moves_count"], len(legal_actions))
+        self.assertEqual(result["legal_moves_count"], len(
+            analyzer.evaluator.evaluate_actions(game, legal_actions)
+        ))
+        self.assertEqual(result["player"], "F")
+        self.assertIn("best_second_gap", result)
+        self.assertIn("best_worst_gap", result)
+
+    def test_decision_analyzer_limits_sampled_actions(self):
+        game = Game()
+        legal_actions = game.get_legal_actions()
+        analyzer = DecisionAnalyzer(rollouts_per_action=1, seed=3, candidate_limit=3)
+
+        result = analyzer.analyze(game, legal_actions, legal_actions[0])
+
+        self.assertEqual(result["legal_moves_count"], len(legal_actions))
+        self.assertEqual(len(analyzer._analysis_actions(legal_actions)), 3)
+        self.assertIn(Action("end_phase"), analyzer._analysis_actions(legal_actions))
+
+    def test_decision_analyzer_records_move_features(self):
+        game = Game()
+        legal_actions = game.get_legal_actions()
+        analyzer = DecisionAnalyzer(rollouts_per_action=1, seed=3, candidate_limit=3)
+
+        analyzer.analyze(game, legal_actions, legal_actions[0])
+
+        self.assertEqual(len(analyzer.last_detailed_rows), 3)
+        row = next(row for row in analyzer.last_detailed_rows if row["move_kind"] == "put")
+        self.assertEqual(row["phase"], 1)
+        self.assertEqual(row["z"], 0)
+        self.assertIn("win_rate", row)
+        self.assertIn("immediate_score_delta", row)
+        self.assertIn("completed_lines_change", row)
 
 
 if __name__ == "__main__":

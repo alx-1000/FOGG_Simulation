@@ -18,9 +18,20 @@ class MonteCarloAI:
         self.last_estimates = []
 
     def choose_action(self, game):
+        estimates = self.evaluate_actions(game, self._candidate_actions(game))
+
+        self.last_estimates = estimates
+        best_rate = max(item["win_rate"] for item in estimates)
+        finalists = [item for item in estimates if item["win_rate"] == best_rate]
+        best_margin = max(item["mean_score_margin"] for item in finalists)
+        finalists = [item for item in finalists if item["mean_score_margin"] == best_margin]
+        return self.random.choice(finalists)["action"]
+
+    def evaluate_actions(self, game, actions=None):
+        """Estimate each supplied action from the current player's perspective."""
         player = game.current_player
         estimates = []
-        for action in self._candidate_actions(game):
+        for action in self._candidate_actions(game) if actions is None else actions:
             total_outcome = 0.0
             total_margin = 0
             for _ in range(self.rollouts_per_action):
@@ -36,13 +47,7 @@ class MonteCarloAI:
                 "win_rate": total_outcome / self.rollouts_per_action,
                 "mean_score_margin": total_margin / self.rollouts_per_action,
             })
-
-        self.last_estimates = estimates
-        best_rate = max(item["win_rate"] for item in estimates)
-        finalists = [item for item in estimates if item["win_rate"] == best_rate]
-        best_margin = max(item["mean_score_margin"] for item in finalists)
-        finalists = [item for item in finalists if item["mean_score_margin"] == best_margin]
-        return self.random.choice(finalists)["action"]
+        return estimates
 
     def _candidate_actions(self, game):
         actions = game.get_legal_actions()

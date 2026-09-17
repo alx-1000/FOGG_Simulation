@@ -1,5 +1,6 @@
 import argparse
 import csv
+from pathlib import Path
 from collections import Counter, defaultdict
 
 
@@ -94,10 +95,75 @@ def print_decision_results(rows):
         )
 
 
+def print_intensity_results(rows):
+    print("\n=== Decision intensity ===")
+    groups = defaultdict(list)
+    for row in rows:
+        groups[row["phase"]].append(row)
+    for phase, decisions in sorted(groups.items(), key=lambda item: int(item[0])):
+        print(
+            f"Phase {phase}: mean legal moves {mean([int(row['legal_moves_count']) for row in decisions]):.2f}, "
+            f"mean best-second gap {mean([float(row['best_second_gap']) for row in decisions if row['best_second_gap'] != '']):.3f}, "
+            f"mean best-worst gap {mean([float(row['best_worst_gap']) for row in decisions]):.3f}"
+        )
+
+
+def print_detailed_results(rows):
+    print("\n=== Candidate move features ===")
+    phase_groups = defaultdict(list)
+    for row in rows:
+        phase_groups[row["phase"]].append(row)
+    for phase, candidates in sorted(phase_groups.items(), key=lambda item: int(item[0])):
+        print(
+            f"Phase {phase}: candidates N={len(candidates)}, "
+            f"mean win rate {mean([float(row['win_rate']) for row in candidates]):.3f}"
+        )
+
+    feature_groups = (
+        ("move_type", "Move type"),
+        ("is_end_phase", "End phase"),
+        ("color1", "Color1"),
+        ("color2", "Color2"),
+        ("x", "X position"),
+        ("y", "Y position"),
+        ("z", "Z position"),
+        ("immediate_score_delta", "Immediate score delta"),
+    )
+    for field, label in feature_groups:
+        groups = defaultdict(list)
+        for row in rows:
+            groups[row[field]].append(row)
+        print(f"{label}:")
+        for value, candidates in sorted(groups.items(), key=lambda item: str(item[0])):
+            print(
+                f"  {value}: N={len(candidates)}, "
+                f"mean win rate {mean([float(row['win_rate']) for row in candidates]):.3f}"
+            )
+
+    print("\n=== Decision intensity by phase and player ===")
+    groups = defaultdict(list)
+    for row in rows:
+        groups[(row["phase"], row["player"])].append(row)
+    for (phase, player), decisions in sorted(groups.items(), key=lambda item: (int(item[0][0]), item[0][1])):
+        print(
+            f"Phase {phase}, Player {player}: mean legal moves "
+            f"{mean([int(row['legal_moves_count']) for row in decisions]):.2f}, "
+            f"mean best-second gap "
+            f"{mean([float(row['best_second_gap']) for row in decisions if row['best_second_gap'] != '']):.3f}, "
+            f"mean best-worst gap "
+            f"{mean([float(row['best_worst_gap']) for row in decisions]):.3f}"
+        )
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--games", default="simulation/ai_games.csv")
     parser.add_argument("--decisions", default="simulation/ai_games_decisions.csv")
+    parser.add_argument("--decision-analysis", default="simulation/decision_analysis.csv")
+    parser.add_argument(
+        "--decision-analysis-detailed",
+        default="simulation/decision_analysis_detailed.csv",
+    )
     args = parser.parse_args()
 
     with open(args.games, newline="", encoding="utf-8") as file:
@@ -109,6 +175,12 @@ def main():
     print_ai_results(games)
     print_phase_end_results(games)
     print_decision_results(decisions)
+    if Path(args.decision_analysis).exists():
+        with open(args.decision_analysis, newline="", encoding="utf-8") as file:
+            print_intensity_results(list(csv.DictReader(file)))
+    if Path(args.decision_analysis_detailed).exists():
+        with open(args.decision_analysis_detailed, newline="", encoding="utf-8") as file:
+            print_detailed_results(list(csv.DictReader(file)))
 
 
 if __name__ == "__main__":

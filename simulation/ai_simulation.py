@@ -5,6 +5,7 @@ from pathlib import Path
 from ai.monte_carlo import MonteCarloAI
 from ai.random_ai import RandomAI
 from ai.runner import play_game
+from simulation.decision_analysis import DecisionAnalyzer
 
 
 def make_agent(name, rollouts, candidate_limit, seed):
@@ -37,6 +38,9 @@ def main():
     parser.add_argument("--g", choices=("random", "monte_carlo"), default="random")
     parser.add_argument("--output", default="simulation/ai_games.csv")
     parser.add_argument("--decisions-output")
+    parser.add_argument("--analysis-output", default="simulation/decision_analysis.csv")
+    parser.add_argument("--analysis-rollouts", type=int, default=50)
+    parser.add_argument("--analysis-candidate-limit", type=int, default=24)
     args = parser.parse_args()
 
     decisions_output = args.decisions_output or str(
@@ -45,11 +49,18 @@ def main():
 
     rows = []
     decision_rows = []
+    analysis_rows = []
+    detailed_rows = []
     for game_id in range(1, args.games + 1):
+        analyzer = DecisionAnalyzer(
+            args.analysis_rollouts,
+            seed=game_id * 2 + 1000000,
+            candidate_limit=args.analysis_candidate_limit,
+        )
         game = play_game({
             "F": make_agent(args.f, args.rollouts, args.candidate_limit, game_id * 2),
             "G": make_agent(args.g, args.rollouts, args.candidate_limit, game_id * 2 + 1),
-        })
+        }, decision_analyzer=analyzer.analyze)
         winner = "F" if game.score_F > game.score_G else "G" if game.score_G > game.score_F else "draw"
         phase1 = phase_end_event(game, 1)
         phase2 = phase_end_event(game, 2)
@@ -77,6 +88,19 @@ def main():
         })
         for decision in game.decision_history:
             decision_rows.append({"game_id": game_id, **decision})
+            analysis_rows.append({"game": game_id, **{
+                key: decision[key]
+                for key in (
+                    "turn", "phase", "player", "legal_moves_count",
+                    "best_winrate", "second_winrate", "worst_winrate",
+                    "best_second_gap", "best_worst_gap",
+                    "selected_move", "selected_winrate",
+                )
+            }})
+        for detail in analyzer.detailed_rows:
+            detailed_rows.append({"game": game_id, **detail})
+        if game_id % 2 == 0:
+            print(f"{game_id} games finished", flush=True)
 
     with open(args.output, "w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=rows[0].keys())
@@ -88,6 +112,18 @@ def main():
         writer.writeheader()
         writer.writerows(decision_rows)
 
+    with open(args.analysis_output, "w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=analysis_rows[0].keys())
+        writer.writeheader()
+        writer.writerows(analysis_rows)
+
+    detailed_output = str(Path(args.analysis_output).with_name("decision_analysis_detailed.csv"))
+    with open(detailed_output, "w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=detailed_rows[0].keys())
+        writer.writeheader()
+        writer.writerows(detailed_rows)
+
 
 if __name__ == "__main__":
     main()
+

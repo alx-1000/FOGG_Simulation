@@ -1,7 +1,7 @@
 from src.game import Game
 
 
-def play_game(agents, phase_end_rule="by_player"):
+def play_game(agents, phase_end_rule="by_player", decision_analyzer=None):
     """Run a complete game and return the game with its complete history."""
     game = Game()
     game.phase_end_rule = phase_end_rule
@@ -14,7 +14,10 @@ def play_game(agents, phase_end_rule="by_player"):
         agent = agents[player]
         legal_actions = game.get_legal_actions()
         action = agent.choose_action(game)
-        game.decision_history.append(_decision_record(game, agent, player, legal_actions, action))
+        record = _decision_record(game, agent, player, legal_actions, action)
+        if decision_analyzer is not None:
+            record.update(decision_analyzer(game, legal_actions, action))
+        game.decision_history.append(record)
         game.apply_action(action)
     return game
 
