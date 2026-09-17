@@ -67,7 +67,7 @@ Phase 1の得点差が大きいほど、最終的な勝率も高くなる。
 ---
 
 ## 4. Monte Carlo AI
-`rollout`：1つの候補手を評価するために、その手を指した後のゲームを何回シミュレーションするか。
+`rollout`：1つの候補手を評価するために、その手を指した後のゲームを何回シミュレーションするか  
 `candidate limit`：1局面で、最大いくつの候補手を評価するか
 
 Monte Carlo AI vs Random AI、30 games、10 rollouts、candidate limit 24。
