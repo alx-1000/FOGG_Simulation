@@ -36,6 +36,7 @@ def main():
     parser.add_argument("--candidate-limit", type=int, default=24)
     parser.add_argument("--f", choices=("random", "monte_carlo"), default="monte_carlo")
     parser.add_argument("--g", choices=("random", "monte_carlo"), default="random")
+    parser.add_argument("--phase-end-rule", choices=("by_player", "fixed"), default="fixed")
     parser.add_argument("--output", default="simulation/ai_games.csv")
     parser.add_argument("--decisions-output")
     parser.add_argument("--analysis-output", default="simulation/decision_analysis.csv")
@@ -60,13 +61,13 @@ def main():
         game = play_game({
             "F": make_agent(args.f, args.rollouts, args.candidate_limit, game_id * 2),
             "G": make_agent(args.g, args.rollouts, args.candidate_limit, game_id * 2 + 1),
-        }, decision_analyzer=analyzer.analyze)
+        }, phase_end_rule=args.phase_end_rule, decision_analyzer=analyzer.analyze)
         winner = "F" if game.score_F > game.score_G else "G" if game.score_G > game.score_F else "draw"
         phase1 = phase_end_event(game, 1)
         phase2 = phase_end_event(game, 2)
         rows.append({
             "game_id": game_id,
-            "phase_end_rule": "by_player",
+            "phase_end_rule": args.phase_end_rule,
             "F_ai": args.f,
             "G_ai": args.g,
             "score_F_phase1": phase1["score_F"],
